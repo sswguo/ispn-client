@@ -1,0 +1,10 @@
+apiVersion: infinispan.org/v1
+kind: Infinispan
+metadata:
+  name: rmt-infinispan
+spec:
+  replicas: 2
+  service:
+    type: Cache
+  security:
+    endpointSecretName: remote-ispn-secret
