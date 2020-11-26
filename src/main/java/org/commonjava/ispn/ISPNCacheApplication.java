@@ -34,7 +34,8 @@ public class ISPNCacheApplication
 		HotPodClient client = new HotPodClient();
 		try
 		{
-			client.setup();
+			//client.setup();
+			client.setupWithProps();
 		}
 		catch ( Exception e )
 		{

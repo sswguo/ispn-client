@@ -2,6 +2,7 @@ FROM openjdk:8
 
 COPY ./target/ispn-client-0.0.1-SNAPSHOT.jar  /var/lib/ispn/
 COPY ./certs/tls.crt /var/lib/ispn/
+COPY ./conf/hotrod-client.properties /var/lib/ispn/
 WORKDIR /var/lib/ispn/
 
 EXPOSE 8080

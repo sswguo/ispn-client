@@ -7,6 +7,10 @@ import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
 import org.infinispan.client.hotrod.configuration.SaslQop;
 import org.infinispan.commons.configuration.XMLStringConfiguration;
 
+import java.io.FileReader;
+import java.io.Reader;
+import java.util.Properties;
+
 //https://github.com/infinispan/infinispan-simple-tutorials/tree/master/remote
 //https://access.redhat.com/documentation/en-us/red_hat_data_grid/8.0/html-single/running_data_grid_on_openshift/index
 //https://infinispan.org/infinispan-operator/1.1.x/operator.html
@@ -42,9 +46,8 @@ public class HotPodClient
         RemoteCacheManager rmc = new RemoteCacheManager(builder.build());
         rmc.start();
 
-        String xml = "<infinispan><cache-container><distributed-cache name=\"cart\"><expiration interval=\"10000\" lifespan=\"10\" max-idle=\"10\"/></distributed-cache></cache-container></infinispan>";
         // Obtain the default cache
-        RemoteCache<String, String> cache = rmc.administration().getOrCreateCache( "cart", new XMLStringConfiguration( xml ) );
+        RemoteCache<String, String> cache = getOrCreateCache( rmc, "cart" );
 
         cache.put( "key1", "v1" );
         System.out.println("Put value success.");
@@ -52,6 +55,34 @@ public class HotPodClient
         // Stop the cache manager and release all resources
         rmc.stop();
 
+    }
+
+    public void setupWithProps() throws Exception
+    {
+        ConfigurationBuilder builder = new ConfigurationBuilder();
+        Properties p = new Properties();
+        try(Reader r = new FileReader( "/var/lib/ispn/hotrod-client.properties")) {
+            p.load(r);
+            builder.withProperties(p);
+        }
+        RemoteCacheManager rcm = new RemoteCacheManager(builder.build());
+        rcm.start();
+
+        // Obtain the default cache
+        RemoteCache<String, String> cache = getOrCreateCache( rcm, "cart" );
+
+        cache.put( "key1", "v1" );
+        System.out.println("Put value success.");
+
+        // Stop the cache manager and release all resources
+        rcm.stop();
+    }
+
+    public RemoteCache<String, String> getOrCreateCache( final RemoteCacheManager manager, final String cacheName )
+    {
+        String xml = "<infinispan><cache-container><distributed-cache name=\"cart\"><expiration interval=\"10000\" lifespan=\"10\" max-idle=\"10\"/></distributed-cache></cache-container></infinispan>";
+        // Obtain the default cache
+        return manager.administration().getOrCreateCache( cacheName, new XMLStringConfiguration( xml ) );
     }
 
 }
