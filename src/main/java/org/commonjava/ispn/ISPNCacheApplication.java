@@ -1,7 +1,6 @@
 package org.commonjava.ispn;
 
-import org.commonjava.ispn.cache.HotPodClient;
-import org.commonjava.ispn.cache.ISPNCache;
+import org.commonjava.ispn.cache.HotRodClient;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -31,7 +30,7 @@ public class ISPNCacheApplication
 		{
 			e.printStackTrace();
 		}*/
-		HotPodClient client = new HotPodClient();
+		HotRodClient client = new HotRodClient();
 		try
 		{
 			//client.setup();

@@ -19,7 +19,7 @@ import java.util.Properties;
 //https://infinispan.org/infinispan-operator/1.1.x/operator.html
 //https://infinispan.org/infinispan-operator/master/operator.html#creating_caches_hotrod-caches
 //https://access.redhat.com/documentation/en-us/red_hat_data_grid/8.1/html/hot_rod_java_client_guide/configuring_hotrod
-public class HotPodClient
+public class HotRodClient
 {
     public void setup() throws Exception
     {
@@ -52,7 +52,7 @@ public class HotPodClient
         rmc.start();
 
         // Obtain the default cache
-        RemoteCache<String, String> cache = getOrCreateCache( rmc, "cart" );
+        RemoteCache<String, String> cache = getOrCreateCache( rmc, "notfound" );
 
         cache.put( "key1", "v1" );
         System.out.println("Put value success.");
@@ -74,7 +74,7 @@ public class HotPodClient
         rcm.start();
 
         // Obtain the default cache
-        RemoteCache<String, String> cache = getOrCreateCache( rcm, "notfoundcache" );
+        RemoteCache<String, String> cache = getOrCreateCache( rcm, "notfound" );
 
         cache.put( "key1", "v1" );
         System.out.println("Put value success.");
@@ -86,19 +86,19 @@ public class HotPodClient
     public RemoteCache<String, String> getOrCreateCache( final RemoteCacheManager manager, final String cacheName )
     {
         //String xml = "<infinispan><cache-container><distributed-cache name=\"" + cacheName + "\"><expiration interval=\"10000\" lifespan=\"10\" max-idle=\"10\"/></distributed-cache></cache-container></infinispan>";
-        String xml = loadXMLConfiguration();
+        String xml = loadXMLConfiguration( cacheName );
         // Obtain the default cache
         return manager.administration().getOrCreateCache( cacheName, new XMLStringConfiguration( xml ) );
     }
 
     // Manually to load xml for infinispan 9.x
-    private String loadXMLConfiguration()
+    private String loadXMLConfiguration( final String cacheName )
     {
         BufferedReader bufReader = null;
         try
         {
             // our XML file for this example
-            File xmlFile = new File( "/var/lib/ispn/infinispan.xml" );
+            File xmlFile = new File( "/var/lib/ispn/cache-" + cacheName + ".xml" );
 
             // Let's get XML file as String using BufferedReader
             // FileReader uses platform's default character encoding
@@ -121,7 +121,7 @@ public class HotPodClient
         }
         catch ( Exception e )
         {
-            e.printStackTrace();
+            System.out.println("Load configuration error: " + cacheName );
         }
         finally
         {
