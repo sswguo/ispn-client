@@ -50,10 +50,17 @@
 			<artifactId>infinispan-core</artifactId>
 			<version>${infinispan.version}</version>
 		</dependency>
+		<!--
+		<dependency>
+			<groupId>org.infinispan</groupId>
+			<artifactId>infinispan-commons</artifactId>
+			<version>11.0.5.Final</version>
+		</dependency>
+		-->
 		<dependency>
 			<groupId>org.infinispan</groupId>
 			<artifactId>infinispan-client-hotrod</artifactId>
-			<version>${infinispan.version}</version>
+			<version>9.4.15.Final</version>
 		</dependency>
 	</dependencies>
 

@@ -7,13 +7,18 @@ import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
 import org.infinispan.client.hotrod.configuration.SaslQop;
 import org.infinispan.commons.configuration.XMLStringConfiguration;
 
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.Reader;
 import java.util.Properties;
 
 //https://github.com/infinispan/infinispan-simple-tutorials/tree/master/remote
 //https://access.redhat.com/documentation/en-us/red_hat_data_grid/8.0/html-single/running_data_grid_on_openshift/index
 //https://infinispan.org/infinispan-operator/1.1.x/operator.html
+//https://infinispan.org/infinispan-operator/master/operator.html#creating_caches_hotrod-caches
+//https://access.redhat.com/documentation/en-us/red_hat_data_grid/8.1/html/hot_rod_java_client_guide/configuring_hotrod
 public class HotPodClient
 {
     public void setup() throws Exception
@@ -69,7 +74,7 @@ public class HotPodClient
         rcm.start();
 
         // Obtain the default cache
-        RemoteCache<String, String> cache = getOrCreateCache( rcm, "cart" );
+        RemoteCache<String, String> cache = getOrCreateCache( rcm, "notfoundcache" );
 
         cache.put( "key1", "v1" );
         System.out.println("Put value success.");
@@ -80,9 +85,59 @@ public class HotPodClient
 
     public RemoteCache<String, String> getOrCreateCache( final RemoteCacheManager manager, final String cacheName )
     {
-        String xml = "<infinispan><cache-container><distributed-cache name=\"cart\"><expiration interval=\"10000\" lifespan=\"10\" max-idle=\"10\"/></distributed-cache></cache-container></infinispan>";
+        //String xml = "<infinispan><cache-container><distributed-cache name=\"" + cacheName + "\"><expiration interval=\"10000\" lifespan=\"10\" max-idle=\"10\"/></distributed-cache></cache-container></infinispan>";
+        String xml = loadXMLConfiguration();
         // Obtain the default cache
         return manager.administration().getOrCreateCache( cacheName, new XMLStringConfiguration( xml ) );
+    }
+
+    // Manually to load xml for infinispan 9.x
+    private String loadXMLConfiguration()
+    {
+        BufferedReader bufReader = null;
+        try
+        {
+            // our XML file for this example
+            File xmlFile = new File( "/var/lib/ispn/infinispan.xml" );
+
+            // Let's get XML file as String using BufferedReader
+            // FileReader uses platform's default character encoding
+            // if you need to specify a different encoding, use InputStreamReader
+            Reader fileReader = new FileReader( xmlFile );
+            bufReader = new BufferedReader( fileReader );
+
+            StringBuilder sb = new StringBuilder();
+            String line = bufReader.readLine();
+            while ( line != null )
+            {
+                sb.append( line.trim() );
+                line = bufReader.readLine();
+            }
+            String xml2String = sb.toString();
+            System.out.println( "XML to String using BufferedReader : " );
+            System.out.println( xml2String );
+
+            return xml2String;
+        }
+        catch ( Exception e )
+        {
+            e.printStackTrace();
+        }
+        finally
+        {
+            if ( bufReader != null )
+            {
+                try
+                {
+                    bufReader.close();
+                }
+                catch ( IOException e )
+                {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return "";
     }
 
 }
