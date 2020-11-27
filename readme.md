@@ -1,2 +1,2 @@
-- Running `./run.sh` to exec maven build, docker build and push image into quay.io
-- Running `./oc.sh` to new app in OpenShift 
+- Running `bin/run.sh` to exec maven build, docker build and push image into quay.io
+- Running `bin/oc.sh` to new app in OpenShift 

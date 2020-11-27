@@ -24,7 +24,7 @@ spec:
     endpointSecretName: remote-ispn-secret
 ```
 ```
-oc create -f cr_minimal.yaml
+oc create -f templates/cr_minimal.yaml
 ```
 ### Connectiong to Infinispan Clusters via Hot Rod Client
 - Grab the crt
