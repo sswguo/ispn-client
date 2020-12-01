@@ -1,10 +1,25 @@
-<infinispan>
+<infinispan xmlns:jdbc="urn:infinispan:config:store:jdbc:9.4">
     <cache-container>
         <distributed-cache name="metadata">
            <!--
            Expires in 3 hours and run expiration every 15 minutes.
            -->
            <expiration lifespan="10800000" interval="900000" />
+
+
+            <persistence>
+                <jdbc:string-keyed-jdbc-store xmlns="urn:infinispan:config:store:jdbc:9.4" dialect="H2">
+                    <jdbc:connection-pool connection-url="jdbc:h2:mem:infinispan_string_based;DB_CLOSE_DELAY=-1" username="sa" driver="org.h2.Driver"/>
+                    <jdbc:string-keyed-table drop-on-exit="true" create-on-start="true" prefix="ispn">
+                        <jdbc:id-column name="ID_COLUMN" type="VARCHAR(255)" />
+                        <jdbc:data-column name="DATA_COLUMN" type="BINARY" />
+                        <jdbc:timestamp-column name="TIMESTAMP_COLUMN" type="BIGINT" />
+                        <jdbc:segment-column name="SEGMENT_COLUMN" type="INT"/>
+                    </jdbc:string-keyed-table>
+                </jdbc:string-keyed-jdbc-store>
+            </persistence>
+
+
         </distributed-cache>
     </cache-container>
 </infinispan>
