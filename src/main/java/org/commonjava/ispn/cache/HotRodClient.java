@@ -77,7 +77,14 @@ public class HotRodClient
         RemoteCache<String, String> cache = getOrCreateCache( rcm, "notfound" );
 
         cache.put( "key1", "v1" );
+
+        RemoteCache<String, String> metadataCache = getOrCreateCache( rcm, "metadata" );
+        metadataCache.put( "m1", "test_metadata" );
+
         System.out.println("Put value success.");
+
+        cache = getOrCreateCache( rcm, "notfound" );
+        System.out.println("Query the value:" + cache.get( "key1" ));
 
         // Stop the cache manager and release all resources
         rcm.stop();

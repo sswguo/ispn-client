@@ -1,6 +1,6 @@
 <infinispan>
     <cache-container>
-        <distributed-cache name="notfound">
+        <distributed-cache name="metadata">
            <!--
            Expires in 3 hours and run expiration every 15 minutes.
            -->
