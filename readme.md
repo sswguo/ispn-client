@@ -1,3 +1,8 @@
+### Prerequisites
+- Install Infinispan Operator.
+- Have an oc or a kubectl client.
+
+### Running the client app
 - Running `bin/run.sh` to exec maven build, docker build and push image into quay.io
 - Running `bin/oc.sh` to new app in OpenShift 
 - Checking logs
