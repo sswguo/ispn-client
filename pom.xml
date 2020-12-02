@@ -16,7 +16,7 @@
 
 	<properties>
 		<java.version>1.8</java.version>
-		<infinispan.version>9.4.15.Final</infinispan.version>
+		<infinispan.version>11.0.3.Final</infinispan.version>
 	</properties>
 
 	<dependencies>
@@ -50,17 +50,15 @@
 			<artifactId>infinispan-core</artifactId>
 			<version>${infinispan.version}</version>
 		</dependency>
-		<!--
 		<dependency>
 			<groupId>org.infinispan</groupId>
 			<artifactId>infinispan-commons</artifactId>
-			<version>11.0.5.Final</version>
+			<version>${infinispan.version}</version>
 		</dependency>
-		-->
 		<dependency>
 			<groupId>org.infinispan</groupId>
 			<artifactId>infinispan-client-hotrod</artifactId>
-			<version>9.4.15.Final</version>
+			<version>${infinispan.version}</version>
 		</dependency>
 	</dependencies>
 

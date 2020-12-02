@@ -74,22 +74,24 @@ public class HotRodClient
         rcm.start();
 
         // Obtain the default cache
-        RemoteCache<String, String> cache = getOrCreateCache( rcm, "notfound" );
+        RemoteCache<String, String> cache = rcm.getCache("notfound");//getOrCreateCache( rcm, "notfound" );
 
         cache.put( "key1", "v1" );
 
-        RemoteCache<String, String> metadataCache = getOrCreateCache( rcm, "metadata" );
+        RemoteCache<String, String> metadataCache = rcm.getCache("metadata");//getOrCreateCache( rcm, "metadata" );
         metadataCache.put( "m1", "test_metadata" );
 
         System.out.println("Put value success.");
 
-        cache = getOrCreateCache( rcm, "notfound" );
+        cache = rcm.getCache( "notfound" );
         System.out.println("Query the value:" + cache.get( "key1" ));
 
         // Stop the cache manager and release all resources
         rcm.stop();
     }
 
+    // for infinispan 9.x
+    @Deprecated
     public RemoteCache<String, String> getOrCreateCache( final RemoteCacheManager manager, final String cacheName )
     {
         //String xml = "<infinispan><cache-container><distributed-cache name=\"" + cacheName + "\"><expiration interval=\"10000\" lifespan=\"10\" max-idle=\"10\"/></distributed-cache></cache-container></infinispan>";
