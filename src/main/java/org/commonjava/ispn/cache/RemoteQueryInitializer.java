@@ -3,6 +3,7 @@ package org.commonjava.ispn.cache;
 import org.infinispan.protostream.SerializationContextInitializer;
 import org.infinispan.protostream.annotations.AutoProtoSchemaBuilder;
 
+/*
 @AutoProtoSchemaBuilder(
                 includeClasses = {
                                 CacheKey.class
@@ -13,3 +14,4 @@ import org.infinispan.protostream.annotations.AutoProtoSchemaBuilder;
 public interface RemoteQueryInitializer extends SerializationContextInitializer
 {
 }
+*/

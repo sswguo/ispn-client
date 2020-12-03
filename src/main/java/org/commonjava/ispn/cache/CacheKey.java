@@ -29,11 +29,15 @@ public class CacheKey implements Serializable
     @ProtoField(number = 2)
     public String value;
 
+    @ProtoField( number = 3, javaType = CacheItem.class )
+    public CacheItem item;
+
     @ProtoFactory
-    public CacheKey( String key, String value )
+    public CacheKey( String key, String value, CacheItem item )
     {
         this.key = key;
         this.value = value;
+        this.item = item;
     }
 
     @Override

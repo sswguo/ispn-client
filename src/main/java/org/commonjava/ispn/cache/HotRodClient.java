@@ -92,7 +92,7 @@ public class HotRodClient
         cache.put( "key1", "v1" );
 
         RemoteCache<Object, Object> metadataCache = getOrCreateCache( rcm, "metadata" );
-        metadataCache.put( new CacheKey( "0001", "cache0001" ), "test_metadata" );
+        metadataCache.put( new CacheKey( "0001", "cache0001", new CacheItem( "item001" ) ), "test_metadata" );
 
         System.out.println("Put value success.");
 
@@ -100,7 +100,7 @@ public class HotRodClient
         System.out.println("Query the value:" + cache.get( "key1" ));
 
         metadataCache = rcm.getCache("metadata");
-        System.out.println("Query the value of cacheKey: " + metadataCache.get( new CacheKey( "0001", "cache0001" ) ));
+        System.out.println("Query the value of cacheKey: " + metadataCache.get( new CacheKey( "0001", "cache0001", new CacheItem( "item001" ) ) ));
 
         //https://access.redhat.com/documentation/en-us/red_hat_data_grid/8.1/html-single/data_grid_developer_guide/index#query_library
         QueryFactory queryFactory = Search.getQueryFactory( metadataCache );
