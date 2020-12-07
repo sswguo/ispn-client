@@ -8,6 +8,8 @@ import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
 import org.infinispan.client.hotrod.configuration.SaslQop;
 import org.infinispan.client.hotrod.marshall.MarshallerUtil;
 import org.infinispan.commons.configuration.XMLStringConfiguration;
+import org.infinispan.commons.util.Util;
+import org.infinispan.protostream.FileDescriptorSource;
 import org.infinispan.protostream.SerializationContext;
 import org.infinispan.protostream.annotations.ProtoSchemaBuilder;
 import org.infinispan.query.dsl.Query;
@@ -89,7 +91,7 @@ public class HotRodClient
         // Obtain the default cache
         RemoteCache<Object, Object> cache = getOrCreateCache( rcm, "notfound" );
 
-        cache.put( "key1", "v1" );
+        cache.put( "key1", new CacheEAnnotation( "001" ) );
 
         RemoteCache<Object, Object> metadataCache = getOrCreateCache( rcm, "metadata" );
         metadataCache.put( new CacheKey( "0001", "cache0001", new CacheItem( "item001" ) ), "test_metadata" );
@@ -184,9 +186,14 @@ public class HotRodClient
     {
         // Get the serialization context of the client
         SerializationContext ctx = MarshallerUtil.getSerializationContext( cacheManager);
-        // Use ProtoSchemaBuilder to define a Protobuf schema on the client
+
+        // 1. register schema via .proto and marshaller per entity
+        ctx.registerProtoFiles( FileDescriptorSource.fromResources( "cache.proto" ));
+        ctx.registerMarshaller( new CacheEMarshaller() );
+
+        // 2. java annotated way, use ProtoSchemaBuilder to define a Protobuf schema on the client
         ProtoSchemaBuilder protoSchemaBuilder = new ProtoSchemaBuilder();
-        String fileName = "cache.proto";
+        String fileName = "cache_auto.proto";
         String protoFile = protoSchemaBuilder
                         .fileName(fileName)
                         .addClass(CacheKey.class)
