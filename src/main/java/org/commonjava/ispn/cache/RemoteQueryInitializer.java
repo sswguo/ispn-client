@@ -8,7 +8,7 @@ import org.infinispan.protostream.annotations.AutoProtoSchemaBuilder;
                 includeClasses = {
                                 CacheKey.class
                 },
-                schemaFileName = "cache.proto",
+                schemaFileName = "metadata.proto",
                 schemaFilePath = "proto/",
                 schemaPackageName = "cache_sample")
 public interface RemoteQueryInitializer extends SerializationContextInitializer

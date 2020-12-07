@@ -1,5 +1,7 @@
 package org.commonjava.ispn.cache;
 
+import org.apache.maven.artifact.repository.metadata.Metadata;
+import org.apache.maven.artifact.repository.metadata.Versioning;
 import org.infinispan.client.hotrod.RemoteCache;
 import org.infinispan.client.hotrod.RemoteCacheManager;
 import org.infinispan.client.hotrod.Search;
@@ -8,7 +10,6 @@ import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
 import org.infinispan.client.hotrod.configuration.SaslQop;
 import org.infinispan.client.hotrod.marshall.MarshallerUtil;
 import org.infinispan.commons.configuration.XMLStringConfiguration;
-import org.infinispan.commons.util.Util;
 import org.infinispan.protostream.FileDescriptorSource;
 import org.infinispan.protostream.SerializationContext;
 import org.infinispan.protostream.annotations.ProtoSchemaBuilder;
@@ -91,7 +92,14 @@ public class HotRodClient
         // Obtain the default cache
         RemoteCache<Object, Object> cache = getOrCreateCache( rcm, "notfound" );
 
-        cache.put( "key1", new CacheEAnnotation( "001" ) );
+        Metadata metadata = new Metadata();
+        metadata.setGroupId( "org.jboss" );
+        metadata.setArtifactId( "infinispan-parent" );
+        metadata.setVersion( "11.4.5.Final" );
+        Versioning versioning = new Versioning();
+        versioning.setRelease( "11.4.5.Final" );
+        metadata.setVersioning( versioning );
+        cache.put( "key1", metadata );
 
         RemoteCache<Object, Object> metadataCache = getOrCreateCache( rcm, "metadata" );
         metadataCache.put( new CacheKey( "0001", "cache0001", new CacheItem( "item001" ) ), "test_metadata" );
@@ -188,8 +196,9 @@ public class HotRodClient
         SerializationContext ctx = MarshallerUtil.getSerializationContext( cacheManager);
 
         // 1. register schema via .proto and marshaller per entity
-        ctx.registerProtoFiles( FileDescriptorSource.fromResources( "cache.proto" ));
-        ctx.registerMarshaller( new CacheEMarshaller() );
+        ctx.registerProtoFiles( FileDescriptorSource.fromResources( "metadata.proto" ));
+        ctx.registerMarshaller( new MetadataMarshaller() );
+        ctx.registerMarshaller( new VersionMarshaller() );
 
         // 2. java annotated way, use ProtoSchemaBuilder to define a Protobuf schema on the client
         ProtoSchemaBuilder protoSchemaBuilder = new ProtoSchemaBuilder();

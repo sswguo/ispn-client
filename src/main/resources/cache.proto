@@ -1,4 +1,0 @@
-package cache;
-message CacheEAnnotation {
-    required string id = 1;
-}

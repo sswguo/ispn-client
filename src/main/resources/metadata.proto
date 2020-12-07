@@ -1,0 +1,12 @@
+package maven;
+message Metadata {
+    required string artifactId = 1;
+    required string groupId = 2;
+    required string version = 3;
+
+    required Versioning versioning = 4;
+}
+
+message Versioning {
+    required string release = 1;
+}
