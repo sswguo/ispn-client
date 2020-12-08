@@ -21,6 +21,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Properties;
 
@@ -90,7 +93,7 @@ public class HotRodClient
         addCacheKeySchema( rcm );
 
         // Obtain the default cache
-        RemoteCache<Object, Object> cache = getOrCreateCache( rcm, "notfound" );
+        RemoteCache<Object, Object> nfcCache = getOrCreateCache( rcm, "notfound" );
 
         Metadata metadata = new Metadata();
         metadata.setGroupId( "org.jboss" );
@@ -99,15 +102,15 @@ public class HotRodClient
         Versioning versioning = new Versioning();
         versioning.setRelease( "11.4.5.Final" );
         metadata.setVersioning( versioning );
-        cache.put( "key1", metadata );
+        nfcCache.put( "key1", metadata );
 
         RemoteCache<Object, Object> metadataCache = getOrCreateCache( rcm, "metadata" );
         metadataCache.put( new CacheKey( "0001", "cache0001", new CacheItem( "item001" ) ), "test_metadata" );
 
         System.out.println("Put value success.");
 
-        cache = rcm.getCache( "notfound" );
-        System.out.println("Query the value:" + cache.get( "key1" ));
+        nfcCache = rcm.getCache( "notfound" );
+        System.out.println("Query the value:" + nfcCache.get( "key1" ));
 
         metadataCache = rcm.getCache("metadata");
         System.out.println("Query the value of cacheKey: " + metadataCache.get( new CacheKey( "0001", "cache0001", new CacheItem( "item001" ) ) ));
@@ -117,15 +120,15 @@ public class HotRodClient
         Query query = queryFactory.create( "FROM cache.CacheKey c where c.key = :key" );
         query.setParameter( "key", "0001" );
 
-        List<CacheKey> cacheKeyList = query.list();
+        queryFactory = Search.getQueryFactory( nfcCache );
+        query = queryFactory.create( "FROM maven.Metadata m where m.groupId = 'org.jboss'" );
+        List<Metadata> metadatas = query.list();
 
-        System.out.println(cacheKeyList);
-
-        for( CacheKey cacheKey : cacheKeyList )
+        System.out.println("Metadata size:" + metadatas.size());
+        for ( Metadata md : metadatas )
         {
-            System.out.println("CacheKey with key: " + cacheKey);
+            System.out.println("Metadata:" + md.getArtifactId());
         }
-
 
         // Stop the cache manager and release all resources
         rcm.stop();
@@ -190,7 +193,7 @@ public class HotRodClient
         return "";
     }
 
-    private void addCacheKeySchema(RemoteCacheManager cacheManager) throws IOException
+    private void addCacheKeySchema(RemoteCacheManager cacheManager) throws IOException, URISyntaxException
     {
         // Get the serialization context of the client
         SerializationContext ctx = MarshallerUtil.getSerializationContext( cacheManager);
@@ -215,6 +218,9 @@ public class HotRodClient
 
         // Define the new schema on the server too
         metadataCache.put(fileName, protoFile);
+        metadataCache.put( "metadata.proto", FileDescriptorSource.getResourceAsString( getClass(), "/metadata.proto" ));
+
+
     }
 
 }
