@@ -1,6 +1,6 @@
 ### Prerequisites
 - Install Infinispan Operator.
-- Have an oc or a kubectl client.
+- Have an `oc` or a `kubectl` client.
 
 ### Running the client app 
 - Login OpenShift and select the right namespace/project 
