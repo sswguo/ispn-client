@@ -85,3 +85,143 @@ infinispan.client.hotrod.sni_host_name=rmt-infinispan.spmm-automation.svc.cluste
 # Clients automatically generate trust stores from certificates.
 infinispan.client.hotrod.trust_store_path=/var/lib/ispn/tls.crt
 ```
+
+### Developer 
+## Using Protobuf with Hot Rod
+- Configure the client to use a dedicated marshaller, in this case, the ProtoStreamMarshaller
+```
+infinispan.client.hotrod.marshaller=org.infinispan.client.hotrod.marshall.ProtoStreamMarshaller
+```
+- Define the message, and place the .proto under classpath resource
+```
+package maven;
+message Metadata {
+    required string artifactId = 1;
+    required string groupId = 2;
+    required string version = 3;
+
+    required Versioning versioning = 4;
+}
+
+message Versioning {
+    required string release = 1;
+}
+```
+- The SerializationContext.registerProtofile method receives the name of a .proto classpath resource file that contains the message type definitions.
+```
+// Get the serialization context of the client
+ SerializationContext ctx = MarshallerUtil.getSerializationContext( cacheManager);
+
+// 1. register schema via .proto and marshaller per entity
+ctx.registerProtoFiles( FileDescriptorSource.fromResources( "metadata.proto" ));
+```
+
+- Define the marshaller per entity
+```
+public class MetadataMarshaller
+                implements MessageMarshaller<Metadata>
+{
+    @Override
+    public Metadata readFrom( ProtoStreamReader reader ) throws IOException
+    {
+        String artifactId = reader.readString("artifactId");
+        String groupId = reader.readString( "groupId" );
+        String version = reader.readString( "version" );
+        Versioning versioning = reader.readObject( "versioning", Versioning.class );
+
+        Metadata metadata = new Metadata();
+        metadata.setArtifactId( artifactId );
+        metadata.setGroupId( groupId );
+        metadata.setVersion( version );
+        metadata.setVersioning( versioning );
+
+        return metadata;
+    }
+
+    @Override
+    public void writeTo( ProtoStreamWriter writer, Metadata metadata ) throws IOException
+    {
+        writer.writeString("artifactId", metadata.getArtifactId());
+        writer.writeString( "groupId", metadata.getGroupId() );
+        writer.writeString( "version", metadata.getVersion() );
+        writer.writeObject( "versioning", metadata.getVersioning(), Versioning.class );
+    }
+
+    @Override
+    public Class<? extends Metadata> getJavaClass()
+    {
+        return Metadata.class;
+    }
+
+    @Override
+    public String getTypeName()
+    {
+        return "maven.Metadata";
+    }
+}
+```
+- Registering Per Entity Marshallers
+```
+ctx.registerMarshaller( new MetadataMarshaller() );
+ctx.registerMarshaller( new VersionMarshaller() );
+
+// Define the new schema on the server too
+metadataCache.put( "metadata.proto", FileDescriptorSource.getResourceAsString( getClass(), "/metadata.proto" ));
+```
+### Defining Protocol Buffers Schemas With Java Annotations
+- You can declare Protobuf metadata using Java annotations. Instead of providing a MessageMarshaller implementation and a .proto schema file, you can add minimal annotations to a Java class and its fields.
+```
+@ProtoDoc("@Indexed")
+public class CacheKey implements Serializable
+{
+
+    //@Field(index = Index.YES, analyze = Analyze.NO)
+    @ProtoDoc("@Field(index=Index.YES, analyze = Analyze.NO, store = Store.NO)")
+    @ProtoField(number = 1)
+    public String key;
+
+    //@Field(index = Index.NO, analyze = Analyze.NO)
+    @ProtoDoc("@Field(index=Index.NO, analyze = Analyze.NO, store = Store.NO)")
+    @ProtoField(number = 2)
+    public String value;
+
+    @ProtoField( number = 3, javaType = CacheItem.class )
+    public CacheItem item;
+
+    @ProtoFactory
+    public CacheKey( String key, String value, CacheItem item )
+    {
+        this.key = key;
+        this.value = value;
+        this.item = item;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "CacheKey{" + "key='" + key + '\'' + ", value='" + value + '\'' + '}';
+    }
+}
+```
+- Registering the schema both in client and server
+```
+// Get the serialization context of the client
+  SerializationContext ctx = MarshallerUtil.getSerializationContext( cacheManager);
+
+  // 2. java annotated way, use ProtoSchemaBuilder to define a Protobuf schema on the client
+  ProtoSchemaBuilder protoSchemaBuilder = new ProtoSchemaBuilder();
+  String fileName = "cache_auto.proto";
+  String protoFile = protoSchemaBuilder
+                  .fileName(fileName)
+                  .addClass(CacheKey.class)
+                  .packageName("cache")
+                  .build(ctx);
+
+  // Retrieve metadata cache
+  RemoteCache<String, String> metadataCache =
+                  cacheManager.getCache(PROTOBUF_METADATA_CACHE_NAME);
+
+  // Define the new schema on the server too
+  metadataCache.put(fileName, protoFile);
+```
+
