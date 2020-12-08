@@ -87,13 +87,17 @@ infinispan.client.hotrod.trust_store_path=/var/lib/ispn/tls.crt
 ```
 
 ### Developer -- [Developing for Infinispan 11.0](https://infinispan.org/docs/stable/titles/developing/developing.html#marshalling_user_types)
+
+> How do I make my Java objects queryable by remote clients? 
+https://infinispan.org/blog/2018/06/27/making-java-objects-queryable-by/
+
 ## Using Protobuf with Hot Rod
-- Configure the client to use a dedicated marshaller, in this case, the ProtoStreamMarshaller
+* Configure the client to use a dedicated marshaller, in this case, the ProtoStreamMarshaller
 ```
 infinispan.client.hotrod.marshaller=org.infinispan.client.hotrod.marshall.ProtoStreamMarshaller
 ```
-- In some cases we might need to manually define Protobuf schemas and implement ProtoStream marshallers. For example, if you cannot modify Java object classes to add annotations.
-- Create a Protobuf schema, .proto file, that provides a structured representations of the Java objects to marshall.
+* In some cases we might need to manually define Protobuf schemas and implement ProtoStream marshallers. For example, if you cannot modify Java object classes to add annotations.
+  * Create a Protobuf schema, .proto file, that provides a structured representations of the Java objects to marshall.
 ```
 package maven;
 message Metadata {
@@ -108,7 +112,7 @@ message Versioning {
     required string release = 1;
 }
 ```
-- The `SerializationContext.registerProtofile` method receives the name of a .proto classpath resource file that contains the message type definitions.
+  * The `SerializationContext.registerProtofile` method receives the name of a .proto classpath resource file that contains the message type definitions.
 ```
 // Get the serialization context of the client
  SerializationContext ctx = MarshallerUtil.getSerializationContext( cacheManager);
@@ -117,7 +121,7 @@ message Versioning {
 ctx.registerProtoFiles( FileDescriptorSource.fromResources( "metadata.proto" ));
 ```
 
-- Use the `org.infinispan.protostream.MessageMarshaller` interface to implement marshallers for our classes.
+  * Use the `org.infinispan.protostream.MessageMarshaller` interface to implement marshallers for our classes.
 ```
 public class MetadataMarshaller
                 implements MessageMarshaller<Metadata>
@@ -231,4 +235,4 @@ QueryFactory queryFactory = Search.getQueryFactory( nfcCache );
 Query query = queryFactory.create( "FROM maven.Metadata m where m.groupId = 'org.jboss'" );
 List<Metadata> metadatas = query.list();
 ```
-
+### Indexing and Searching `TODO` [Performance Tuning](https://infinispan.org/docs/stable/titles/developing/developing.html#query_performance)
