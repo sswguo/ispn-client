@@ -224,4 +224,10 @@ public class CacheKey implements Serializable
   // Define the new schema on the server too
   metadataCache.put(fileName, protoFile);
 ```
+### Query 
+```
+QueryFactory queryFactory = Search.getQueryFactory( nfcCache );
+Query query = queryFactory.create( "FROM maven.Metadata m where m.groupId = 'org.jboss'" );
+List<Metadata> metadatas = query.list();
+```
 
