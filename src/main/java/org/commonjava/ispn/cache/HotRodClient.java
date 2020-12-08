@@ -116,12 +116,8 @@ public class HotRodClient
         System.out.println("Query the value of cacheKey: " + metadataCache.get( new CacheKey( "0001", "cache0001", new CacheItem( "item001" ) ) ));
 
         //https://access.redhat.com/documentation/en-us/red_hat_data_grid/8.1/html-single/data_grid_developer_guide/index#query_library
-        QueryFactory queryFactory = Search.getQueryFactory( metadataCache );
-        Query query = queryFactory.create( "FROM cache.CacheKey c where c.key = :key" );
-        query.setParameter( "key", "0001" );
-
-        queryFactory = Search.getQueryFactory( nfcCache );
-        query = queryFactory.create( "FROM maven.Metadata m where m.groupId = 'org.jboss'" );
+        QueryFactory queryFactory = Search.getQueryFactory( nfcCache );
+        Query query = queryFactory.create( "FROM maven.Metadata m where m.groupId = 'org.jboss'" );
         List<Metadata> metadatas = query.list();
 
         System.out.println("Metadata size:" + metadatas.size());
