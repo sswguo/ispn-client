@@ -86,13 +86,14 @@ infinispan.client.hotrod.sni_host_name=rmt-infinispan.spmm-automation.svc.cluste
 infinispan.client.hotrod.trust_store_path=/var/lib/ispn/tls.crt
 ```
 
-### Developer 
+### Developer -- [Developing for Infinispan 11.0](https://infinispan.org/docs/stable/titles/developing/developing.html#marshalling_user_types)
 ## Using Protobuf with Hot Rod
 - Configure the client to use a dedicated marshaller, in this case, the ProtoStreamMarshaller
 ```
 infinispan.client.hotrod.marshaller=org.infinispan.client.hotrod.marshall.ProtoStreamMarshaller
 ```
-- Define the message, and place the .proto under classpath resource
+- In some cases we might need to manually define Protobuf schemas and implement ProtoStream marshallers. For example, if you cannot modify Java object classes to add annotations.
+- Create a Protobuf schema, .proto file, that provides a structured representations of the Java objects to marshall.
 ```
 package maven;
 message Metadata {
@@ -107,7 +108,7 @@ message Versioning {
     required string release = 1;
 }
 ```
-- The SerializationContext.registerProtofile method receives the name of a .proto classpath resource file that contains the message type definitions.
+- The `SerializationContext.registerProtofile` method receives the name of a .proto classpath resource file that contains the message type definitions.
 ```
 // Get the serialization context of the client
  SerializationContext ctx = MarshallerUtil.getSerializationContext( cacheManager);
@@ -116,7 +117,7 @@ message Versioning {
 ctx.registerProtoFiles( FileDescriptorSource.fromResources( "metadata.proto" ));
 ```
 
-- Define the marshaller per entity
+- Use the `org.infinispan.protostream.MessageMarshaller` interface to implement marshallers for our classes.
 ```
 public class MetadataMarshaller
                 implements MessageMarshaller<Metadata>
