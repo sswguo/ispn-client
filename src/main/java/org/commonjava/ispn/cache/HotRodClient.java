@@ -111,16 +111,20 @@ public class HotRodClient
         RemoteCache<Object, Object> metadataCache = getOrCreateCache( rcm, "metadata" );
         metadataCache.put( new CacheKey( "0001", "cache0001", new CacheItem( "item001" ) ), "test_metadata" );
 
+        RemoteCache<Object, Object> expirationCache = getOrCreateCache( rcm, "expiration" );
+        expirationCache.addClientListener( new MetadataListener() );
+        expirationCache.put( "key1", metadata );
+
         System.out.println("Put value success.");
 
-        nfcCache = rcm.getCache( "notfound" );
-        System.out.println("Query the value:" + nfcCache.get( "key1" ));
+        expirationCache = rcm.getCache( "expiration" );
+        System.out.println("Query the value:" + expirationCache.get( "key1" ));
 
         metadataCache = rcm.getCache("metadata");
         System.out.println("Query the value of cacheKey: " + metadataCache.get( new CacheKey( "0001", "cache0001", new CacheItem( "item001" ) ) ));
 
         //https://access.redhat.com/documentation/en-us/red_hat_data_grid/8.1/html-single/data_grid_developer_guide/index#query_library
-        QueryFactory queryFactory = Search.getQueryFactory( nfcCache );
+        QueryFactory queryFactory = Search.getQueryFactory( expirationCache );
         Query query = queryFactory.create( "FROM maven.Metadata m where m.groupId = 'org.jboss'" );
 
         checkQuery( query );
@@ -129,11 +133,11 @@ public class HotRodClient
 
         checkQuery( query );
 
-        nfcCache.remove( "key1" );
+        expirationCache.remove( "key1" );
 
         checkQuery( query );
 
-        nfcCache.put( "key2", metadata, 5, TimeUnit.SECONDS );
+        expirationCache.put( "key2", metadata, 5, TimeUnit.SECONDS );
         Thread.sleep(70000);
         // Stop the cache manager and release all resources
         rcm.stop();
@@ -154,6 +158,8 @@ public class HotRodClient
     @Deprecated
     public RemoteCache<Object, Object> getOrCreateCache( final RemoteCacheManager manager, final String cacheName )
     {
+        // For test, let's remove the cache first everytime
+        manager.administration().removeCache( cacheName );
         //String xml = "<infinispan><cache-container><distributed-cache name=\"" + cacheName + "\"><expiration interval=\"10000\" lifespan=\"10\" max-idle=\"10\"/></distributed-cache></cache-container></infinispan>";
         String xml = loadXMLConfiguration( cacheName );
         // Obtain the default cache

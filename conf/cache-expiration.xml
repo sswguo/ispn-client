@@ -1,0 +1,10 @@
+<infinispan>
+    <cache-container>
+        <distributed-cache name="expiration">
+           <!--
+           Expires in 1 min and run expiration every 1 minutes.
+           -->
+           <expiration lifespan="60000" interval="60000" />
+        </distributed-cache>
+    </cache-container>
+</infinispan>
