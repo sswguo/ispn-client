@@ -37,6 +37,7 @@ import static org.infinispan.query.remote.client.ProtobufMetadataManagerConstant
 //https://access.redhat.com/documentation/en-us/red_hat_data_grid/8.1/html/hot_rod_java_client_guide/configuring_hotrod
 //https://github.com/redhat-developer/redhat-datagrid-tutorials/tree/RHDG_8.1.0/remote-query/src/main/java/org/infinispan/tutorial/simple/remote/query
 //https://infinispan.org/blog/2020/05/30/hotrod-percache-configuration/
+//https://infinispan.org/docs/dev/titles/hotrod_java/hotrod_java.html
 public class HotRodClient
 {
     public void setup() throws Exception
