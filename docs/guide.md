@@ -235,4 +235,38 @@ QueryFactory queryFactory = Search.getQueryFactory( nfcCache );
 Query query = queryFactory.create( "FROM maven.Metadata m where m.groupId = 'org.jboss'" );
 List<Metadata> metadatas = query.list();
 ```
+
+### Listener
+- Creating Event Listeners
+```
+@ClientListener
+public class MetadataListener
+{
+
+    @ClientCacheEntryExpired
+    public void metadataExpired( ClientCacheEntryExpiredEvent event)
+    {
+        System.out.println("Expired :" + event.getKey());
+    }
+
+    @ClientCacheEntryCreated
+    public void metadataCreated( ClientCacheEntryCreatedEvent event )
+    {
+        System.out.println("Created :" + event.getKey());
+    }
+
+    @ClientCacheEntryRemoved
+    public void metadataRemoved( ClientCacheEntryRemovedEvent event )
+    {
+        System.out.println("Removed :" + event.getKey());
+    }
+
+}
+```
+- Once the client listener implementation has been created, it needs to be registered with the server.
+```
+RemoteCache<Object, Object> expirationCache = getOrCreateCache( rcm, "expiration" );
+expirationCache.addClientListener( new MetadataListener() );
+```
+
 ### Indexing and Searching `TODO` [Performance Tuning](https://infinispan.org/docs/stable/titles/developing/developing.html#query_performance)
