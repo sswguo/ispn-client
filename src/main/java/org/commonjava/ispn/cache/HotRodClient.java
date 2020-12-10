@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import static org.infinispan.query.remote.client.ProtobufMetadataManagerConstants.PROTOBUF_METADATA_CACHE_NAME;
 
@@ -35,6 +36,7 @@ import static org.infinispan.query.remote.client.ProtobufMetadataManagerConstant
 //https://infinispan.org/infinispan-operator/master/operator.html#creating_caches_hotrod-caches
 //https://access.redhat.com/documentation/en-us/red_hat_data_grid/8.1/html/hot_rod_java_client_guide/configuring_hotrod
 //https://github.com/redhat-developer/redhat-datagrid-tutorials/tree/RHDG_8.1.0/remote-query/src/main/java/org/infinispan/tutorial/simple/remote/query
+//https://infinispan.org/blog/2020/05/30/hotrod-percache-configuration/
 public class HotRodClient
 {
     public void setup() throws Exception
@@ -95,6 +97,8 @@ public class HotRodClient
         // Obtain the default cache
         RemoteCache<Object, Object> nfcCache = getOrCreateCache( rcm, "notfound" );
 
+        nfcCache.addClientListener( new MetadataListener() );
+
         Metadata metadata = new Metadata();
         metadata.setGroupId( "org.jboss" );
         metadata.setArtifactId( "infinispan-parent" );
@@ -118,6 +122,25 @@ public class HotRodClient
         //https://access.redhat.com/documentation/en-us/red_hat_data_grid/8.1/html-single/data_grid_developer_guide/index#query_library
         QueryFactory queryFactory = Search.getQueryFactory( nfcCache );
         Query query = queryFactory.create( "FROM maven.Metadata m where m.groupId = 'org.jboss'" );
+
+        checkQuery( query );
+
+        Thread.sleep(70000);
+
+        checkQuery( query );
+
+        nfcCache.remove( "key1" );
+
+        checkQuery( query );
+
+        nfcCache.put( "key2", metadata, 5, TimeUnit.SECONDS );
+        Thread.sleep(70000);
+        // Stop the cache manager and release all resources
+        rcm.stop();
+    }
+
+    private void checkQuery( Query query )
+    {
         List<Metadata> metadatas = query.list();
 
         System.out.println("Metadata size:" + metadatas.size());
@@ -125,9 +148,6 @@ public class HotRodClient
         {
             System.out.println("Metadata:" + md.getArtifactId());
         }
-
-        // Stop the cache manager and release all resources
-        rcm.stop();
     }
 
     // for infinispan 9.x

@@ -2,9 +2,9 @@
     <cache-container>
         <distributed-cache name="notfound">
            <!--
-           Expires in 3 hours and run expiration every 15 minutes.
+           Expires in 1 min and run expiration every 1 minutes.
            -->
-           <expiration lifespan="10800000" interval="900000" />
+           <expiration lifespan="60000" interval="60000" />
         </distributed-cache>
     </cache-container>
 </infinispan>
