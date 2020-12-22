@@ -4,12 +4,19 @@ import org.apache.maven.artifact.repository.metadata.Metadata;
 import org.apache.maven.artifact.repository.metadata.Versioning;
 import org.infinispan.client.hotrod.RemoteCache;
 import org.infinispan.client.hotrod.RemoteCacheManager;
+import org.infinispan.client.hotrod.RemoteCounterManagerFactory;
 import org.infinispan.client.hotrod.Search;
 import org.infinispan.client.hotrod.configuration.ClientIntelligence;
 import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
 import org.infinispan.client.hotrod.configuration.SaslQop;
+import org.infinispan.client.hotrod.counter.impl.RemoteCounterManager;
 import org.infinispan.client.hotrod.marshall.MarshallerUtil;
 import org.infinispan.commons.configuration.XMLStringConfiguration;
+import org.infinispan.counter.api.CounterConfiguration;
+import org.infinispan.counter.api.CounterManager;
+import org.infinispan.counter.api.CounterType;
+import org.infinispan.counter.api.Storage;
+import org.infinispan.counter.api.StrongCounter;
 import org.infinispan.protostream.FileDescriptorSource;
 import org.infinispan.protostream.SerializationContext;
 import org.infinispan.protostream.annotations.ProtoSchemaBuilder;
@@ -26,6 +33,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static org.infinispan.query.remote.client.ProtobufMetadataManagerConstants.PROTOBUF_METADATA_CACHE_NAME;
@@ -91,6 +100,9 @@ public class HotRodClient
         }
         RemoteCacheManager rcm = new RemoteCacheManager(builder.build());
         rcm.start();
+
+        //Test the cluster counter
+        registerCounter( rcm );
 
         //register .proto into remoteCacheManager
         addCacheKeySchema( rcm );
@@ -243,6 +255,32 @@ public class HotRodClient
         metadataCache.put(fileName, protoFile);
         metadataCache.put( "metadata.proto", FileDescriptorSource.getResourceAsString( getClass(), "/metadata.proto" ));
 
+
+    }
+
+    private void registerCounter( RemoteCacheManager rcm )
+    {
+        String counter = "remote-counter";
+        CounterManager cm = RemoteCounterManagerFactory.asCounterManager( rcm );
+
+        // To test , let's remove first
+        cm.remove( counter );
+
+        cm.defineCounter( counter, CounterConfiguration.builder( CounterType.BOUNDED_STRONG).initialValue( 1 ).lowerBound( 0).storage(
+                        Storage.VOLATILE).build() );
+
+        StrongCounter sc = cm.getStrongCounter( counter );
+        CompletableFuture<Long> value = sc.incrementAndGet();
+        try
+        {
+            System.out.println(" The value of the counter is: " + value.get());
+            System.out.println("CompareAndSwap 2|1: " + sc.compareAndSwap( 2, 3 ).get());
+            System.out.println("CompareAndSwap 3|1: " + sc.compareAndSwap( 3, 4 ).get());
+        }
+        catch ( InterruptedException | ExecutionException e )
+        {
+            e.printStackTrace();
+        }
 
     }
 
