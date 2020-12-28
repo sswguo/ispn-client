@@ -139,11 +139,13 @@ public class HotRodClient
         metadataCache = rcm.getCache("metadata");
         System.out.println("Query the value of cacheKey: " + metadataCache.get( new CacheKey( "0001", "cache0001", new CacheItem( "item001" ) ) ));
 
+        // test enum marshaller and query
+        nfcCache.put( "key2", new StoreKey( "001", StoreType.group ) );
+        checkCache( nfcCache );
+
         //https://access.redhat.com/documentation/en-us/red_hat_data_grid/8.1/html-single/data_grid_developer_guide/index#query_library
         QueryFactory queryFactory = Search.getQueryFactory( expirationCache );
         Query query = queryFactory.create( "FROM maven.Metadata m where m.groupId = 'org.jboss'" );
-
-        nfcCache.put( "key2", new StoreKey( "001", StoreType.group ) );
 
         checkQuery( query );
 
@@ -159,6 +161,26 @@ public class HotRodClient
         Thread.sleep(70000);
         // Stop the cache manager and release all resources
         rcm.stop();
+    }
+
+    private void checkCache( RemoteCache<Object, Object> nfcCache )
+    {
+        QueryFactory queryFactory = Search.getQueryFactory( nfcCache );
+        Query query = queryFactory.create( "FROM maven.StoreKey sk where sk.type = 'hosted'" );
+        List<StoreKey> keys = query.list();
+        System.out.println("StoreKey size of hosted:" + keys.size());
+        for ( StoreKey key : keys )
+        {
+            System.out.println("Query storeKey by type hosted:" + key.getKeyId());
+        }
+
+        query = queryFactory.create( "FROM maven.StoreKey sk where sk.type = 'group'" );
+        keys = query.list();
+        System.out.println("StoreKey size of group:" + keys.size());
+        for ( StoreKey key : keys )
+        {
+            System.out.println("Query storeKey by type group:" + key.getKeyId());
+        }
     }
 
     private void checkQuery( Query query )
