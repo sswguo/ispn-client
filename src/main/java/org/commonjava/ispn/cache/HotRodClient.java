@@ -35,7 +35,10 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.infinispan.query.remote.client.ProtobufMetadataManagerConstants.PROTOBUF_METADATA_CACHE_NAME;
 
@@ -140,6 +143,8 @@ public class HotRodClient
         QueryFactory queryFactory = Search.getQueryFactory( expirationCache );
         Query query = queryFactory.create( "FROM maven.Metadata m where m.groupId = 'org.jboss'" );
 
+        nfcCache.put( "key2", new StoreKey( "001", StoreType.group ) );
+
         checkQuery( query );
 
         Thread.sleep(70000);
@@ -237,6 +242,8 @@ public class HotRodClient
         ctx.registerProtoFiles( FileDescriptorSource.fromResources( "metadata.proto" ));
         ctx.registerMarshaller( new MetadataMarshaller() );
         ctx.registerMarshaller( new VersionMarshaller() );
+        ctx.registerMarshaller( new StoreKeyMarshaller() );
+        ctx.registerMarshaller( new StoreTypeMarshaller() );
 
         // 2. java annotated way, use ProtoSchemaBuilder to define a Protobuf schema on the client
         ProtoSchemaBuilder protoSchemaBuilder = new ProtoSchemaBuilder();

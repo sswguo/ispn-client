@@ -10,3 +10,16 @@ message Metadata {
 message Versioning {
     required string release = 1;
 }
+
+message StoreKey {
+
+    required string keyId = 1;
+
+    enum StoreType {
+            group = 1;
+            remote = 2;
+            hosted = 3;
+    }
+
+    required StoreType type = 2;
+}
