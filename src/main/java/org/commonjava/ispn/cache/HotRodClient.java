@@ -9,7 +9,6 @@ import org.infinispan.client.hotrod.Search;
 import org.infinispan.client.hotrod.configuration.ClientIntelligence;
 import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
 import org.infinispan.client.hotrod.configuration.SaslQop;
-import org.infinispan.client.hotrod.counter.impl.RemoteCounterManager;
 import org.infinispan.client.hotrod.marshall.MarshallerUtil;
 import org.infinispan.commons.configuration.XMLStringConfiguration;
 import org.infinispan.counter.api.CounterConfiguration;
@@ -29,16 +28,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.infinispan.query.remote.client.ProtobufMetadataManagerConstants.PROTOBUF_METADATA_CACHE_NAME;
 
@@ -93,7 +87,7 @@ public class HotRodClient
 
     }
 
-    public void setupWithProps() throws Exception
+    private RemoteCacheManager startRemoteCacheManager() throws Exception
     {
         ConfigurationBuilder builder = new ConfigurationBuilder();
         Properties p = new Properties();
@@ -103,33 +97,33 @@ public class HotRodClient
         }
         RemoteCacheManager rcm = new RemoteCacheManager(builder.build());
         rcm.start();
+        return rcm;
+    }
+
+    public void setupWithProps() throws Exception
+    {
+        RemoteCacheManager rcm = startRemoteCacheManager();
 
         //Test the cluster counter
         registerCounter( rcm );
 
         //register .proto into remoteCacheManager
-        addCacheKeySchema( rcm );
+        registerMarshallerAndProto( rcm );
 
         // Obtain the default cache
         RemoteCache<Object, Object> nfcCache = getOrCreateCache( rcm, "notfound" );
 
         nfcCache.addClientListener( new MetadataListener() );
 
-        Metadata metadata = new Metadata();
-        metadata.setGroupId( "org.jboss" );
-        metadata.setArtifactId( "infinispan-parent" );
-        metadata.setVersion( "11.4.5.Final" );
-        Versioning versioning = new Versioning();
-        versioning.setRelease( "11.4.5.Final" );
-        metadata.setVersioning( versioning );
-        nfcCache.put( "key1", metadata );
+        nfcCache.put( "key1", buildMetadata() );
 
         RemoteCache<Object, Object> metadataCache = getOrCreateCache( rcm, "metadata" );
         metadataCache.put( new CacheKey( "0001", "cache0001", new CacheItem( "item001" ) ), "test_metadata" );
 
         RemoteCache<Object, Object> expirationCache = getOrCreateCache( rcm, "expiration" );
+        // Test the client listener
         expirationCache.addClientListener( new MetadataListener() );
-        expirationCache.put( "key1", metadata );
+        expirationCache.put( "key1", buildMetadata() );
 
         System.out.println("Put value success.");
 
@@ -153,14 +147,27 @@ public class HotRodClient
 
         checkQuery( query );
 
+        // Try to trigger the remove event
         expirationCache.remove( "key1" );
 
         checkQuery( query );
 
-        expirationCache.put( "key2", metadata, 5, TimeUnit.SECONDS );
+        expirationCache.put( "key2", buildMetadata(), 5, TimeUnit.SECONDS );
         Thread.sleep(70000);
         // Stop the cache manager and release all resources
         rcm.stop();
+    }
+
+    private Object buildMetadata()
+    {
+        Metadata metadata = new Metadata();
+        metadata.setGroupId( "org.jboss" );
+        metadata.setArtifactId( "infinispan-parent" );
+        metadata.setVersion( "11.4.5.Final" );
+        Versioning versioning = new Versioning();
+        versioning.setRelease( "11.4.5.Final" );
+        metadata.setVersioning( versioning );
+        return metadata;
     }
 
     private void checkCache( RemoteCache<Object, Object> nfcCache )
@@ -255,7 +262,7 @@ public class HotRodClient
         return "";
     }
 
-    private void addCacheKeySchema(RemoteCacheManager cacheManager) throws IOException, URISyntaxException
+    private void registerMarshallerAndProto( RemoteCacheManager cacheManager) throws IOException, URISyntaxException
     {
         // Get the serialization context of the client
         SerializationContext ctx = MarshallerUtil.getSerializationContext( cacheManager);
