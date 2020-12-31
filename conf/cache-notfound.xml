@@ -1,10 +1,18 @@
 <infinispan>
     <cache-container>
         <distributed-cache name="notfound">
+            <encoding media-type="application/x-protostream"/>
            <!--
            Expires in 1 min and run expiration every 1 minutes.
            -->
            <expiration lifespan="60000" interval="60000" />
+            <indexing>
+                <indexed-entities>
+                    <indexed-entity>maven.StoreKey</indexed-entity>
+                </indexed-entities>
+                <property name="default.indexmanager">near-real-time</property>
+                <property name="default.directory_provider">local-heap</property>
+            </indexing>
         </distributed-cache>
     </cache-container>
 </infinispan>

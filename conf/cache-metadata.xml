@@ -1,6 +1,7 @@
 <infinispan xmlns:jdbc="urn:infinispan:config:store:jdbc:9.4">
     <cache-container>
         <distributed-cache name="metadata">
+            <encoding media-type="application/x-protostream"/>
            <!--
            Expires in 3 hours and run expiration every 15 minutes.
            -->

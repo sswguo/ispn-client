@@ -38,6 +38,7 @@ import static org.infinispan.query.remote.client.ProtobufMetadataManagerConstant
 
 //https://github.com/infinispan/infinispan-simple-tutorials/tree/master/remote
 //https://access.redhat.com/documentation/en-us/red_hat_data_grid/8.0/html-single/running_data_grid_on_openshift/index
+//https://access.redhat.com/documentation/en-us/red_hat_data_grid/8.0/html-single/data_grid_developer_guide/index#indexing_querying
 //https://infinispan.org/infinispan-operator/1.1.x/operator.html
 //https://infinispan.org/infinispan-operator/master/operator.html#creating_caches_hotrod-caches
 //https://access.redhat.com/documentation/en-us/red_hat_data_grid/8.1/html/hot_rod_java_client_guide/configuring_hotrod
@@ -181,7 +182,7 @@ public class HotRodClient
             System.out.println("Query storeKey by type hosted:" + key.getKeyId());
         }
 
-        query = queryFactory.create( "FROM maven.StoreKey sk where sk.type = 'group'" );
+        query = queryFactory.create( "FROM maven.StoreKey sk where sk.type = 'group' order by sk.type" );
         keys = query.list();
         System.out.println("StoreKey size of group:" + keys.size());
         for ( StoreKey key : keys )

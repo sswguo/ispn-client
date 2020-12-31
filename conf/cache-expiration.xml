@@ -1,6 +1,7 @@
 <infinispan>
     <cache-container>
         <distributed-cache name="expiration">
+            <encoding media-type="application/x-protostream"/>
            <!--
            Expires in 1 min and run expiration every 1 minutes.
            -->
