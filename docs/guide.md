@@ -68,6 +68,8 @@ infinispan.client.hotrod.server_list=rmt-infinispan.spmm-automation.svc.cluster.
 # External clients can use `BASIC` intelligence only.
 infinispan.client.hotrod.client_intelligence=BASIC
 
+infinispan.client.hotrod.marshaller=org.infinispan.client.hotrod.marshall.ProtoStreamMarshaller
+
 # Authentication
 infinispan.client.hotrod.use_auth=true
 # Application user credentials.
@@ -268,5 +270,52 @@ public class MetadataListener
 RemoteCache<Object, Object> expirationCache = getOrCreateCache( rcm, "expiration" );
 expirationCache.addClientListener( new MetadataListener() );
 ```
+
+### Indexing
+Specifying which fields are indexed by annotation
+```
+/*
+  @Indexed
+*/
+message StoreKey {
+
+    /* @IndexedField(index=false, store=true) */
+    required string keyId = 1;
+
+    enum StoreType {
+            group = 1;
+            remote = 2;
+            hosted = 3;
+    }
+
+    /* @IndexedField */
+    required StoreType type = 2;
+}
+``` 
+- @Indexed Applies to message types only. 
+- @IndexedField Applies to fields only. 
+
+Declaring the index in config file
+```
+<infinispan>
+    <cache-container>
+        <distributed-cache name="notfound">
+            <encoding media-type="application/x-protostream"/>
+           <!--
+           Expires in 1 min and run expiration every 1 minutes.
+           -->
+           <expiration lifespan="60000" interval="60000" />
+            <indexing>
+                <indexed-entities>
+                    <indexed-entity>maven.StoreKey</indexed-entity>
+                </indexed-entities>
+                <property name="default.indexmanager">near-real-time</property>
+                <property name="default.directory_provider">local-heap</property>
+            </indexing>
+        </distributed-cache>
+    </cache-container>
+</infinispan>
+```
+
 
 ### Indexing and Searching `TODO` [Performance Tuning](https://infinispan.org/docs/stable/titles/developing/developing.html#query_performance)
