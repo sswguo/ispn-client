@@ -233,7 +233,7 @@ ctx.registerMarshaller( new StoreTypeMarshaller() );
 metadataCache.put( "metadata.proto", FileDescriptorSource.getResourceAsString( getClass(), "/metadata.proto" ));
 ```
 ### Defining Protocol Buffers Schemas With Java Annotations
-- You can declare Protobuf metadata using Java annotations. Instead of providing a MessageMarshaller implementation and a .proto schema file, you can add minimal annotations to a Java class and its fields.
+- You can declare Protobuf metadata using Java annotations. Instead of providing a `MessageMarshaller` implementation and a `.proto` schema file, you can add minimal annotations to a Java class and its fields.
 ```
 @ProtoDoc("@Indexed")
 public class CacheKey implements Serializable
